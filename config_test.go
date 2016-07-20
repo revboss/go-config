@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	"github.com/revboss/config"
+	"github.com/revboss/go-config"
 	"os"
 	"testing"
 )
