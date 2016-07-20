@@ -11,6 +11,7 @@ type Config struct {
 }
 
 type Value struct {
+	Default  interface{}
 	Optional bool
 	Value    interface{}
 }
@@ -36,17 +37,26 @@ func (c *Config) loadEnv() error {
 func set(v *Value, s string) bool {
 	switch v.Value.(type) {
 	case *int:
+		vp := v.Value.(*int)
 		i, _ := strconv.Atoi(s)
-		if i != 0 || v.Optional == true {
-			*v.Value.(*int) = i
-			return true
+		if i != 0 {
+			*vp = i
+		} else if v.Default != nil {
+			*vp = v.Default.(int)
 		}
 
+		return *vp != 0 || v.Optional
+
 	case *string:
-		if len(s) > 0 || v.Optional == true {
-			*v.Value.(*string) = s
-			return true
+		vp := v.Value.(*string)
+		if len(s) > 0 {
+			*vp = s
+		} else if v.Default != nil {
+			*vp = v.Default.(string)
 		}
+
+		return len(*vp) > 0 || v.Optional
 	}
-	return false
+
+	return v.Optional
 }

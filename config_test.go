@@ -9,6 +9,7 @@ import (
 type Config struct {
 	String string
 	Int    int
+	Map    map[string]string
 }
 
 func TestConfigEnvString(t *testing.T) {
@@ -152,4 +153,51 @@ func TestLoadConfig(t *testing.T) {
 	}
 
 	os.Unsetenv("STRING")
+}
+
+func TestDefaultValues(t *testing.T) {
+	cc := &Config{}
+
+	e := config.LoadConfig(config.Config{
+		Env: map[string]config.Value{
+			"STRING": {
+				Default:  "default",
+				Optional: false,
+				Value:    &cc.String,
+			},
+			"INT": {
+				Default:  -1,
+				Optional: true,
+				Value:    &cc.Int,
+			},
+		},
+	})
+	if e != nil {
+		t.Error("LoadConfig should not fail since STRING and INT have defaults")
+	}
+
+	if cc.String != "default" {
+		t.Errorf("Expected %q, got %q", "default", cc.String)
+	}
+
+	if cc.Int != -1 {
+		t.Errorf("Expected %d, got %d", -1, cc.Int)
+	}
+}
+
+func TestIgnoreUnknownType(t *testing.T) {
+	cc := &Config{
+		Map: make(map[string]string),
+	}
+
+	e := config.LoadConfig(config.Config{
+		Env: map[string]config.Value{
+			"MAP": {
+				Value: &cc.Map,
+			},
+		},
+	})
+	if e == nil {
+		t.Error("LoadConfig should fail because it doesn't know what to do with a map")
+	}
 }
